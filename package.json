@@ -15,7 +15,9 @@
   "license": "MIT",
   "dependencies": {
     "azure-iot-amqp-base": "^1.7.2",
-    "azure-iot-common": "^1.7.2"
+    "azure-iot-common": "^1.7.2",
+    "dotenv": "^8.2.0",
+    "uuid": "^8.2.0"
   },
   "devDependencies": {
     "@types/node": "^8.10.24",

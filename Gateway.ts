@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events';
+import * as uuid from 'uuid';
 import { Amqp } from 'azure-iot-amqp-base';
 import { AmqpMessage } from 'azure-iot-amqp-base';
 import { ConnectionString } from 'azure-iot-common';
@@ -134,4 +135,38 @@ export class Gateway extends EventEmitter {
       });
     });
   };
+
+  updateTwin(deviceId: string, message: AmqpMessage): Promise<Error> {
+    message.messageAnnotations = {
+      operation: 'PATCH',
+      resource: '/properties/reported',
+      correlationId: uuid.v4().toString()
+    }
+
+    let linkProperties = {
+      properties: {
+        'com.microsoft:channel-correlation-id' : 'twin:' + message.messageAnnotations.correlationId,
+        'com.microsoft:api-version' : '2019-10-01'
+      },
+      snd_settle_mode: 1,
+      rcv_settle_mode: 0
+    }
+
+    return new Promise((resolve, reject) => {
+      var link = '/devices/' + deviceId + '/twin';
+      this.amqp.attachSenderLink(link, linkProperties, (error, _senderlink) => {
+        if (error) {
+          reject(error);
+          return;
+        } else {
+          _senderlink.send(message, (error) => {
+            reject(error);
+            return;
+          })
+        }
+        resolve();
+      })
+    });
+  };
 }
+              
